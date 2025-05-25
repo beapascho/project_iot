@@ -1,10 +1,10 @@
-# 💧 Sistema de Monitoramento Hídrico com IoT e Arduino
+#Sistema de Monitoramento Hídrico com IoT e Arduino
 
 Este projeto consiste em um protótipo funcional para monitoramento e controle de recursos hídricos, utilizando sensores de pH, turbidez e fluxo de água, além de um atuador (bomba) controlado automaticamente. A proposta está alinhada com o ODS 6 da ONU, que visa garantir água potável e saneamento para todos.
 
 ---
 
-## 🔧 Componentes Utilizados
+##Componentes Utilizados
 
 - Arduino Uno R3
 - Sensor de pH (simulado por potenciômetro)
@@ -19,7 +19,7 @@ Este projeto consiste em um protótipo funcional para monitoramento e controle d
 
 ---
 
-## 🧠 Descrição do Funcionamento
+##Descrição do Funcionamento
 
 O Arduino realiza a leitura dos sensores analógicos de pH e turbidez e, com base nesses valores, decide se a bomba deve ser acionada. Um sensor de fluxo também é utilizado para detectar passagem de água.
 
@@ -34,7 +34,7 @@ Se todas as condições forem verdadeiras, o pino digital D8 ativa a bomba.
 
 ---
 
-## 🖥️ Como Rodar o Projeto
+##Como Rodar o Projeto
 
 1. Abra o código em `Codigo/monitoramento_hidrico.ino` na Arduino IDE.
 2. Verifique se as bibliotecas padrão estão instaladas (`LiquidCrystal`).
@@ -44,5 +44,5 @@ Se todas as condições forem verdadeiras, o pino digital D8 ativa a bomba.
 
 ---
 
-## 🗂️ Estrutura do Repositório
+##Estrutura do Repositório
 
