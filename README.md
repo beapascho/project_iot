@@ -1,48 +1,65 @@
-#Sistema de Monitoramento Hídrico com IoT e Arduino
+# Sistema de Monitoramento de Temperatura e Umidade com ESP32 e MQTT
 
-Este projeto consiste em um protótipo funcional para monitoramento e controle de recursos hídricos, utilizando sensores de pH, turbidez e fluxo de água, além de um atuador (bomba) controlado automaticamente. A proposta está alinhada com o ODS 6 da ONU, que visa garantir água potável e saneamento para todos.
-
----
-
-##Componentes Utilizados
-
-- Arduino Uno R3
-- Sensor de pH (simulado por potenciômetro)
-- Sensor de Turbidez (simulado por potenciômetro)
-- Sensor de Fluxo de água (digital)
-- Bomba de água (simulada por LED)
-- Display LCD 16x2 (sem módulo I2C)
-- Termistor TMP (não utilizado no código atual)
-- Protoboard
-- Jumpers diversos
-- Resistores e potenciômetros
+Este projeto consiste em um protótipo funcional de monitoramento ambiental utilizando um sensor DHT22 para temperatura e umidade, um módulo relé como atuador e comunicação com a internet via protocolo MQTT. Ele exemplifica uma aplicação básica de IoT (Internet das Coisas), sendo útil para ambientes que exigem controle climático automatizado.
 
 ---
 
-##Descrição do Funcionamento
+## Componentes Utilizados
 
-O Arduino realiza a leitura dos sensores analógicos de pH e turbidez e, com base nesses valores, decide se a bomba deve ser acionada. Um sensor de fluxo também é utilizado para detectar passagem de água.
+- ESP32 DevKit V1
+- Sensor DHT22 (Temperatura e Umidade)
+- Módulo Relé 5V
+- LED (atuador visual)
+- Resistor 220Ω
+- Jumpers
+- Simulador Wokwi (https://wokwi.com)
 
-As leituras são exibidas em tempo real no LCD 16x2 e também enviadas via Serial para depuração.
+---
+
+## Descrição do Funcionamento
+
+O ESP32 realiza leituras periódicas dos dados do sensor DHT22. Se a **temperatura ultrapassar 26°C**, um **relé é acionado**, ligando um LED (atuador).
+
+Além disso, os dados são **enviados via protocolo MQTT** para um broker público, permitindo monitoramento remoto.
 
 ### Regras de decisão:
-- `pH < 500`
-- `Turbidez > 400`
-- `Fluxo == HIGH`
+- `Temperatura > 26°C` → ativa o relé.
+- `Temperatura <= 26°C` → desativa o relé.
 
-Se todas as condições forem verdadeiras, o pino digital D8 ativa a bomba.
-
----
-
-##Como Rodar o Projeto
-
-1. Abra o código em `Codigo/monitoramento_hidrico.ino` na Arduino IDE.
-2. Verifique se as bibliotecas padrão estão instaladas (`LiquidCrystal`).
-3. Faça as conexões de acordo com o diagrama em `Diagramas/fritzing-esquema.png`.
-4. Carregue o código no Arduino.
-5. Use o monitor serial a 9600 bps para depuração.
+### Tópicos MQTT utilizados:
+- `misandro/temperature`
+- `misandro/humidity`
+- `misandro/relay`
 
 ---
 
-##Estrutura do Repositório
+##  Como Rodar o Projeto
 
+1. Acesse o simulador em [Wokwi](https://wokwi.com/projects).
+2. Abra o arquivo `monitoramento_mqtt.ino` no ambiente de simulação.
+3. O ESP32 se conecta ao Wi-Fi (rede "Wokwi-GUEST").
+4. Os dados são lidos, exibidos no console serial e enviados via MQTT.
+5. Um LED será acionado via relé caso a temperatura exceda 26°C.
+
+---
+
+## Broker MQTT Utilizado
+
+- **Servidor:** `test.mosquitto.org`
+- **Porta:** `1883`
+- **Protocolo:** MQTT v3.1
+- **Cliente:** ESP32Client (identificação no código)
+
+---
+
+## Referências
+
+- MQTT. [http://mqtt.org](http://mqtt.org)
+- Wokwi IoT Simulator. [https://wokwi.com](https://wokwi.com)
+- Biblioteca PubSubClient para ESP32 MQTT
+- Biblioteca DHT para leitura de sensores de umidade/temperatura
+- ODS 13 – Ação contra a mudança global do clima
+
+---
+
+> Desenvolvido como parte do projeto final da disciplina de Sistemas Embarcados, com foco em aplicações de IoT e MQTT.

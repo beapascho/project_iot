@@ -1,52 +1,107 @@
-#include <LiquidCrystal.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <DHT.h>
 
-// Inicializa o LCD nos pinos correspondentes
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+// Wi-Fi
+const char* ssid = "Wokwi-GUEST";
+const char* password = "";
 
-int phPin = A0;
-int turbidezPin = A1;
-int fluxoPin = 7; // Ajuste aqui para o pino correto conectado ao fluxo
-int bomba = 8;    // Pino digital conectado à bomba (LED ou relé)
+// MQTT
+const char* mqttServer = "test.mosquitto.org";
+const int mqttPort = 1883;
+const char* topicTemperature = "misandro/temperature";
+const char* topicHumidity = "misandro/humidity";
+const char* topicRelay = "misandro/relay";
+
+// Pinos
+#define DHTPIN 13
+#define DHTTYPE DHT22
+#define RELAY_PIN 12
+
+// Objetos
+DHT dht(DHTPIN, DHTTYPE);
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// Reconectar ao broker MQTT
+void reconnectMQTT() {
+  while (!client.connected()) {
+    Serial.print("Conectando ao MQTT...");
+    if (client.connect("ESP32Client")) {
+      Serial.println(" conectado!");
+    } else {
+      Serial.print(" falhou. Código: ");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
+}
 
 void setup() {
-  pinMode(bomba, OUTPUT);
-  pinMode(fluxoPin, INPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(RELAY_PIN, OUTPUT);
 
-  lcd.begin(16, 2); // LCD 16x2
-  lcd.print("Sistema Iniciado");
-  delay(2000);
-  lcd.clear();
+  // Conectar ao Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando ao Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi conectado!");
+
+  // Conectar ao servidor MQTT
+  client.setServer(mqttServer, mqttPort);
 }
 
 void loop() {
-  int ph = analogRead(phPin);
-  int turbidez = analogRead(turbidezPin);
-  int fluxo = digitalRead(fluxoPin);
+  if (!client.connected()) {
+    reconnectMQTT();
+  }
+  client.loop();
 
-  // Exibe valores no Serial Monitor
-  Serial.print("pH: "); Serial.print(ph);
-  Serial.print(" | Turbidez: "); Serial.print(turbidez);
-  Serial.print(" | Fluxo: "); Serial.println(fluxo);
+  // Ler sensores
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
 
-  // Exibe valores no LCD
-  lcd.setCursor(0, 0);
-  lcd.print("pH: ");
-  lcd.print(ph);
-  lcd.print(" ");
-
-  lcd.setCursor(0, 1);
-  lcd.print("T: ");
-  lcd.print(turbidez);
-  lcd.print(" F:");
-  lcd.print(fluxo);
-
-  // Controle da bomba com base nos sensores
-  if (ph < 500 && turbidez > 400 && fluxo == HIGH) {
-    digitalWrite(bomba, HIGH);
-  } else {
-    digitalWrite(bomba, LOW);
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Erro na leitura do sensor DHT!");
+    delay(2000);
+    return;
   }
 
-  delay(1000);
+  // Controlar atuador (relé)
+  bool relayState = false;
+  if (temperature > 26.0) {
+    digitalWrite(RELAY_PIN, HIGH);
+    relayState = true;
+  } else {
+    digitalWrite(RELAY_PIN, LOW);
+    relayState = false;
+  }
+
+  // Publicar via MQTT
+  client.publish(topicTemperature, String(temperature).c_str());
+  client.publish(topicHumidity, String(humidity).c_str());
+  client.publish(topicRelay, relayState ? "ON" : "OFF");
+
+  // Mostrar no console
+  Serial.println("===== Leitura de Sensores =====");
+  Serial.print("Temperatura: ");
+  Serial.print(temperature);
+  Serial.println(" °C");
+
+  Serial.print("Umidade: ");
+  Serial.print(humidity);
+  Serial.println(" %");
+
+  Serial.print("Relé (atuador): ");
+  Serial.println(relayState ? "LIGADO (ON)" : "DESLIGADO (OFF)");
+
+  Serial.println("Dados publicados via MQTT.");
+  Serial.println("===============================");
+  Serial.println();
+
+  delay(10000); // Aguarda 10 segundos
 }
