@@ -1,65 +1,92 @@
-# Sistema de Monitoramento de Temperatura e Umidade com ESP32 e MQTT
+# Sistema de Monitoramento com ESP32 e MQTT
 
-Este projeto consiste em um protótipo funcional de monitoramento ambiental utilizando um sensor DHT22 para temperatura e umidade, um módulo relé como atuador e comunicação com a internet via protocolo MQTT. Ele exemplifica uma aplicação básica de IoT (Internet das Coisas), sendo útil para ambientes que exigem controle climático automatizado.
+Este projeto é um sistema de monitoramento e acionamento automático baseado em IoT, utilizando ESP32, sensor de temperatura e umidade DHT22, módulo relé e protocolo MQTT. Ele simula uma automação que aciona um atuador (relé) com base na temperatura lida, publicando os dados em um broker MQTT.
 
----
+## Objetivo
+
+Demonstrar um sistema funcional que:
+- Lê temperatura e umidade em tempo real com sensor DHT22;
+- Publica os dados via protocolo MQTT para um broker público;
+- Aciona um relé automaticamente quando a temperatura ultrapassa 26°C.
 
 ## Componentes Utilizados
 
-- ESP32 DevKit V1
-- Sensor DHT22 (Temperatura e Umidade)
-- Módulo Relé 5V
-- LED (atuador visual)
-- Resistor 220Ω
-- Jumpers
-- Simulador Wokwi (https://wokwi.com)
+- ESP32 Dev Module
+- Sensor DHT22
+- Módulo Relé 1 canal
+- LED (simulando um atuador, como uma bomba ou ventilador)
+- Protoboard virtual no simulador Wokwi
 
----
+## Simulação Online
 
-## Descrição do Funcionamento
+Você pode visualizar e testar o projeto no simulador Wokwi:
+[Acessar Projeto Wokwi](https://wokwi.com/projects/401183893347235841)
 
-O ESP32 realiza leituras periódicas dos dados do sensor DHT22. Se a **temperatura ultrapassar 26°C**, um **relé é acionado**, ligando um LED (atuador).
+## Comunicação MQTT
 
-Além disso, os dados são **enviados via protocolo MQTT** para um broker público, permitindo monitoramento remoto.
+- **Broker:** test.mosquitto.org
+- **Porta:** 1883 (sem TLS)
+- **Tópicos:**
+  - `misandro/temperature` → Publica a temperatura em °C
+  - `misandro/humidity` → Publica a umidade relativa do ar
+  - `misandro/relay` → Publica o estado do relé ("ON" ou "OFF")
 
-### Regras de decisão:
-- `Temperatura > 26°C` → ativa o relé.
-- `Temperatura <= 26°C` → desativa o relé.
+##  Funcionamento
 
-### Tópicos MQTT utilizados:
-- `misandro/temperature`
-- `misandro/humidity`
-- `misandro/relay`
+1. O ESP32 conecta-se à rede Wi-Fi Wokwi.
+2. Lê os dados do DHT22.
+3. Publica os dados nos tópicos MQTT.
+4. Se a temperatura for maior que 26°C, o relé é ativado (LED acende).
+5. Todo o processo se repete a cada 10 segundos.
 
----
+##  Código Fonte
 
-##  Como Rodar o Projeto
+O código está no arquivo `main.ino`, usando as bibliotecas:
+- `WiFi.h`
+- `PubSubClient.h`
+- `DHT.h`
 
-1. Acesse o simulador em [Wokwi](https://wokwi.com/projects).
-2. Abra o arquivo `monitoramento_mqtt.ino` no ambiente de simulação.
-3. O ESP32 se conecta ao Wi-Fi (rede "Wokwi-GUEST").
-4. Os dados são lidos, exibidos no console serial e enviados via MQTT.
-5. Um LED será acionado via relé caso a temperatura exceda 26°C.
+##  Fluxograma de Funcionamento
 
----
+[Início]
+↓
+[Ler sensor DHT22]
+↓
+[Conectar ao Wi-Fi]
+↓
+[Conectar ao broker MQTT]
+↓
+[Se temperatura > 26°C?]
+→ Sim → [Liga relé]
+→ Não → [Desliga relé]
+↓
+[Publica dados MQTT]
+↓
+[Delay 10 segundos]
+↓
+[Reinicia ciclo]
 
-## Broker MQTT Utilizado
 
-- **Servidor:** `test.mosquitto.org`
-- **Porta:** `1883`
-- **Protocolo:** MQTT v3.1
-- **Cliente:** ESP32Client (identificação no código)
+##  Vídeo Demonstrativo
 
----
+Assista ao vídeo do projeto com explicação completa:  
+[![YouTube Video](https://img.youtube.com/vi/KsDPerIBySY/0.jpg)](https://www.youtube.com/watch?v=KsDPerIBySY)
+
+## Organização do Projeto
+
+- `main.ino`: código principal do ESP32
+- `README.md`: este arquivo com descrição geral
+- Diagrama de montagem no Wokwi
+- Links para vídeo e artigo no PDF entregue
 
 ## Referências
 
-- MQTT. [http://mqtt.org](http://mqtt.org)
-- Wokwi IoT Simulator. [https://wokwi.com](https://wokwi.com)
-- Biblioteca PubSubClient para ESP32 MQTT
-- Biblioteca DHT para leitura de sensores de umidade/temperatura
-- ODS 13 – Ação contra a mudança global do clima
+- https://wokwi.com/
+- https://mqtt.org/
+- [Biblioteca DHT](https://github.com/adafruit/DHT-sensor-library)
+- [Biblioteca PubSubClient](https://pubsubclient.knolleary.net/)
 
----
+## ✍️ Autoria
 
-> Desenvolvido como parte do projeto final da disciplina de Sistemas Embarcados, com foco em aplicações de IoT e MQTT.
+Beatriz Paschoal, Julia Pacheco Moreira
+Universidade Presbiteriana Mackenzie – 2025
